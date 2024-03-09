@@ -1,91 +1,82 @@
+// Question link - https://www.hackerrank.com/contests/xpsc-final-contest-a-batch-04/challenges/mina-and-jungle
+
 #include <bits/stdc++.h>
 #define ll long long
-#define pi pair<int,int>
+#define pi pair<ll, ll>
+#define pii pair<pi,ll>
 
 using namespace std;
 
+ll n, m;
+const ll N = 1005;
+ll a[N][N];
+ll dis[N][N];
+bool vis[N][N];
 
-/*
-1 -2 0 4 5 6
-6 5 4 3 2 1
-5 1 0 0 6 3
-1 2 5 8 4 6
-9 8 0 1 5 6
-Answer: 10;
+vector<pi> d = { {-1, -1}, {-1, 1}, {1, -1}, {1, 1} };
 
-1 0 0 4 5 6
-6 5 4 -2 2 1
-5 1 0 0 6 3
-1 2 5 8 4 6
-9 8 0 -1 5 6
-Answer: Impossible;
-*/
-
-int n, m;
-const int N = 1e3 + 5;
-char grid[N][N];
-bool visited[N][N];
-
-bool isValid(int i, int j) {
-    return i >= 0 && i < n && j >= 0 && j < m && !visited[i][j] && grid[i][j] != 0;
+bool valid(ll i, ll j) {
+    return (i >= 0 && i < n && j >= 0 && j < m);
 }
+class Compare
+{
+public:
+    bool operator()(pii a, pii b) {
+        return a.second > b.second;
+    }
+};
+void dijkstra(ll si, ll sj) {
+    priority_queue<pii, vector<pii>, Compare> pq;
+    pq.push({ {si,sj},0 });
+    dis[si][sj] = 0;
+    vis[si][sj] = true;
+    while (!pq.empty()) {
+        pii parent = pq.top();
+        pq.pop();
+        pi parentNode = parent.first;
+        ll parentCost = parent.second;
+        vis[parentNode.first][parentNode.second] = true;
+        for (pi child : d) {
+            ll xi = parentNode.first + child.first;
+            ll xj = parentNode.second + child.second;
 
-vector<pi> direction = { { -1, -1 }, {-1, 1}, {1, -1}, {1, 1} };
-
-
-void bfs(int s1, int s2) {
-
-    queue<pi> q;
-    q.push({ s1, s2 });
-
-    visited[s1][s2] = true;
-
-    while (!q.empty()) {
-        auto p = q.front();
-        q.pop();
-        for (auto [i, j] : direction) {
-            int si = p.first + i;
-            int sj = p.second + j;
-
-            if (isValid(si, sj) && !visited[si][sj]) {
-                visited[si][sj] = true;
-                q.push({ si, sj });
+            if (valid(xi, xj) && a[xi][xj] != 0 && !vis[xi][xj] && parentCost + a[xi][xj] < dis[xi][xj]) {
+                dis[xi][xj] = parentCost + a[xi][xj];
+                pq.push({ {xi,xj},dis[xi][xj] });
             }
         }
     }
 }
-
 int main() {
-
-    ios::sync_with_stdio(false);
-    cin.tie(NULL);
-
-    int tc;
-    cin >> tc;
-    while (tc--) {
+    ll t;
+    cin >> t;
+    ll cs = 1;
+    while (t--) {
         cin >> n >> m;
-        pi start, end;
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < m; j++) {
-                cin >> grid[i][j];
-                if (grid[i][j] == -1) {
-                    start = { i, j };
+        ll si, sj, di, dj;
+        for (ll i = 0; i < n; i++) {
+            for (ll j = 0; j < m; j++) {
+                dis[i][j] = 1e18;
+                vis[i][j] = false;
+                cin >> a[i][j];
+                if (a[i][j] == -1) {
+                    si = i;
+                    sj = j;
                 }
-                if (grid[i][j] == -2) {
-                    end = { i, j };
+                if (a[i][j] == -2) {
+                    di = i;
+                    dj = j;
                 }
             }
         }
 
-        memset(visited, false, sizeof(visited));
-        bfs(start.first, start.second);
-        if (visited[end.first][end.second]) {
-            cout << "YES" << '\n';
+        dijkstra(si, sj);
+        if (dis[di][dj] == 1e18) {
+            cout << "Case " << cs++ << ": Impossible" << endl;
         }
         else {
-            cout << "NO" << '\n';
+            cout << "Case " << cs++ << ": " << dis[di][dj] + 2 << endl;
         }
-
     }
     return 0;
 }
